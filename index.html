@@ -1,111 +1,544 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centered Fade-in Image</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Canvas UI</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
+    /* Reset & Base */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
     }
 
     html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  background-image: url('https://up.20script.ir/file/2adf-20260126-140146.jpg');
-  background-size: cover;       /* تصویر تمام صفحه باشه */
-  background-position: center;  /* وسط تصویر نمایش داده بشه */
-  background-repeat: no-repeat; /* از تکرار جلوگیری کنه */
+      background: #000;
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
     }
 
-    #loader {
-      position: absolute;
+    body {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+
+    /* ===== پس‌زمینه - واضح ===== */
+    .bg-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('https://cdn.imgurl.ir/uploads/u635923_IMG_20260822_231152.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: 0;
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 480px;
+      background: transparent;
+      position: relative;
+      margin: 0;
+      min-height: 100vh;
+      z-index: 1;
+    }
+
+    .relative-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 700px;
+      background: transparent;
+    }
+
+    /* ===== TOP BAR (فیکس شده در بالا) ===== */
+    .top-bar {
+      position: fixed;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      z-index: 1000;
+      background: transparent;
+      pointer-events: none;
+      padding: 0 16px;
+    }
+    .top-bar > * {
+      pointer-events: auto;
+    }
+
+    .header {
+      width: 100%;
+      height: 130px;
+      background: transparent;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 30px 0 0 0;
+      position: relative;
+    }
+
+    /* ===== TITLE (سمت راست) - بزرگتر ===== */
+    .title-box {
+      width: 120px;
+      height: 56px;
+      background: rgba(22, 22, 23, 0.75);
+      backdrop-filter: blur(22px) saturate(150%);
+      -webkit-backdrop-filter: blur(22px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 12px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+      order: 2;
+      margin-right: auto;
+      margin-top: 0;
+    }
+    .title-box .canvas-text {
+      font-size: 34px;
+      font-weight: 700;
+      color: #7030A0;
+      line-height: 1;
+      transform: translateY(2px);
+      text-shadow: 0 0 20px rgba(112, 48, 160, 0.3);
+    }
+    .title-box .sub-text {
+      font-size: 11px;
+      color: #E0E0E0;
+      transform: translateY(-2px);
+      letter-spacing: 0.3px;
+      opacity: 0.9;
+    }
+
+    /* ===== TOOLBAR (سمت چپ) - کادر به همان اندازه ===== */
+    .toolbar-btn {
+      width: 56px;
+      height: 56px;
+      background: rgba(22, 22, 23, 0.75);
+      backdrop-filter: blur(22px) saturate(150%);
+      -webkit-backdrop-filter: blur(22px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 100px;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 10;
+      margin-top: 0;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+      pointer-events: auto;
+      cursor: default;
+      order: 0;
+      margin-left: auto;
+      overflow: hidden;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .toolbar-btn img {
+      width: 38px;
+      height: 38px;
+      object-fit: cover;
+      border-radius: 100px;
     }
 
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid #d4a373;
-      border-top: 3px solid transparent;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    /* ===== SCROLL AREA ===== */
+    .scroll-area {
+      width: 100%;
+      min-height: 550px;
+      background: transparent;
+      padding: 0 0 30px 0;
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
+      padding-top: 130px;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .scroll-content {
+      padding: 0 0 30px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
+    .home-title {
+      font-size: 72px;
+      font-weight: 700;
+      color: #FCE4EC;
+      padding: 10px 20px 10px 20px;
+      letter-spacing: -1px;
+      line-height: 1;
+      text-align: left;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    }
+
+    /* ===== Shimmer Effect ===== */
+    .shimmer-wrapper {
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .shimmer-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      animation: shimmer 1.8s infinite;
+      z-index: 2;
+    }
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    .shimmer-wrapper.loaded::before {
       display: none;
-      opacity: 0;
-      animation: fadeIn 2s ease-in forwards;
     }
 
-    @keyframes fadeIn {
-      to { opacity: 1; }
+    /* ===== START DRAWING - بدون کادر دور متن ===== */
+    .start-drawing {
+      margin: 10px 20px 10px 20px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 180px;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .start-drawing:active {
+      transform: scale(0.94);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+    .start-drawing .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .start-drawing img {
+      max-width: 100%;
+      max-height: 120px;
+      object-fit: contain;
+      margin-bottom: 4px;
+      pointer-events: none;
+    }
+    .start-drawing .label {
+      font-size: 30px;
+      color: #E2C6F7;
+      padding: 4px 8px;
+      font-weight: 500;
+      text-shadow: 0 0 16px rgba(112, 48, 160, 0.3);
+      pointer-events: none;
+    }
+
+    /* ===== CANVAS PRO ===== */
+    .canvas-pro {
+      margin: 10px 20px 10px 20px;
+      padding: 8px 16px;
+      background: rgba(112, 48, 160, 0.15);
+      border-radius: 300px;
+      border: 1px solid rgba(255, 152, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 100px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      gap: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-pro .content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+      padding: 0 4px;
+      pointer-events: none;
+    }
+    .canvas-pro .label {
+      font-size: 25px;
+      color: #FF9800;
+      padding: 8px 4px;
+      font-weight: 600;
+      text-shadow: 0 0 16px rgba(255, 152, 0, 0.2);
+      text-align: left;
+      flex: 1;
+      pointer-events: none;
+    }
+    .canvas-pro img {
+      height: 70px;
+      width: auto;
+      object-fit: contain;
+      padding: 4px;
+      pointer-events: none;
+    }
+
+    /* ===== WHAT'S NEW ===== */
+    .whatsnew-title {
+      font-size: 72px;
+      font-weight: 700;
+      color: #FCE4EC;
+      padding: 0px 0px 0px 0px;
+      letter-spacing: 0px;
+      line-height: 1;
+      margin-top: 10px;
+      text-align: left;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    }
+
+    /* ===== FEATURE IMAGE - نسبت 16:9 ===== */
+    .feature-image {
+      margin: 0 20px 10px 20px;
+      border-radius: 50px;
+      overflow: hidden;
+      background: #1a1a2e;
+      aspect-ratio: 16 / 9;
+      width: calc(100% - 40px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .feature-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: relative;
+      z-index: 1;
+    }
+    .feature-image .placeholder-icon {
+      position: absolute;
+      z-index: 0;
+      font-size: 80px;
+      color: #7030A0;
+      opacity: 0.4;
+    }
+    .feature-image .shimmer-wrapper {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .scroll-area::-webkit-scrollbar {
+      width: 4px;
+    }
+    .scroll-area::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .scroll-area::-webkit-scrollbar-thumb {
+      background: #7030A0;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 400px) {
+      .home-title,
+      .whatsnew-title {
+        font-size: 50px;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .start-drawing .label {
+        font-size: 24px;
+      }
+      .canvas-pro .label {
+        font-size: 28px;
+      }
+      .title-box .canvas-text {
+        font-size: 22px;
+      }
+      .title-box {
+        width: 130px;
+        height: 52.5px;
+      }
+      .toolbar-btn {
+        width: 52.5px;
+        height: 52.5px;
+      }
+      .toolbar-btn img {
+        width: 34px;
+        height: 34px;
+      }
+      .canvas-pro img {
+        height: 55px;
+      }
+      .start-drawing img {
+        max-height: 90px;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="loader">
-    <div class="spinner"></div>
+
+<!-- ===== پس‌زمینه ===== -->
+<div class="bg-image"></div>
+<div class="bg-overlay"></div>
+
+<div class="main-container">
+  <div class="relative-wrapper">
+
+    <!-- ===== TOP BAR ===== -->
+    <div class="top-bar">
+      <div class="header">
+        <div class="toolbar-btn">
+          <img src="https://cdn.imgurl.ir/uploads/v96739_20260823_083825.png" alt="Toolbar">
+        </div>
+        <div class="title-box">
+          <span class="canvas-text">Canvas</span>
+          <span class="sub-text">Draw your dreams</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SCROLL AREA ===== -->
+    <div class="scroll-area">
+      <div class="scroll-content">
+
+        <div class="home-title">Home</div>
+
+        <!-- Start Drawing -->
+        <div class="start-drawing shimmer-wrapper" id="startWrapper">
+          <div class="content">
+            <img src="https://cdn.imgurl.ir/uploads/q767882_1787463951308.png" alt="Start Drawing" id="startImg">
+            <span class="label">Start Drawing</span>
+          </div>
+        </div>
+
+        <!-- Canvas Pro -->
+        <div class="canvas-pro shimmer-wrapper" id="proWrapper">
+          <div class="content">
+            <span class="label">Buy Canvas Pro</span>
+            <img src="https://cdn.imgurl.ir/uploads/o96057_Pro.png" alt="Canvas Pro" id="proImg">
+          </div>
+        </div>
+
+        <div class="whatsnew-title">What's new</div>
+
+        <!-- Feature Image - 16:9 -->
+        <div class="feature-image" id="featureWrapper">
+          <div class="shimmer-wrapper" id="featureShimmer"></div>
+          <i class="fas fa-palette placeholder-icon" id="featureIcon"></i>
+          <img src="https://cdn.imgurl.ir/uploads/a447818_20260823_143600.png" alt="What's new" id="featureImg" style="display:none;">
+        </div>
+
+        <div style="height: 20px;"></div>
+
+      </div>
+    </div>
+
   </div>
+</div>
 
-  <img src="https://biaupload.com/do.php?imgf=org-25cc705536111.png" alt="Centered Image" id="mainImage">
+<script>
+  (function() {
+    const startImg = document.getElementById('startImg');
+    const proImg = document.getElementById('proImg');
+    const featureImg = document.getElementById('featureImg');
+    
+    const featureIcon = document.getElementById('featureIcon');
+    const featureShimmer = document.getElementById('featureShimmer');
+    
+    const startWrapper = document.getElementById('startWrapper');
+    const proWrapper = document.getElementById('proWrapper');
 
-  <script>
-    const img = document.getElementById('mainImage');
-    const loader = document.getElementById('loader');
+    // Helper function to remove shimmer and show image
+    function handleFeatureImageLoaded() {
+      featureIcon.style.display = 'none';
+      featureImg.style.display = 'block';
+      featureShimmer.classList.add('loaded');
+    }
 
-    img.onload = () => {
-      loader.style.display = 'none';
-      img.style.display = 'block';
+    // Start Drawing click handler
+    startWrapper.addEventListener('click', function(e) {
+      window.location.href = 'https://newniom.github.io/Home/';
+    });
+
+    // Image load/error handlers
+    startImg.onload = function() {
+      startWrapper.classList.add('loaded');
+    };
+    startImg.onerror = function() {
+      startWrapper.classList.add('loaded');
     };
 
-    // ساخت شناسه یکتا برای هر دستگاه
-    function generateUUID() {
-      return 'xxxxxx'.replace(/x/g, () =>
-        Math.floor(Math.random() * 36).toString(36)
-      );
-    }
+    proImg.onload = function() {
+      proWrapper.classList.add('loaded');
+    };
+    proImg.onerror = function() {
+      proWrapper.classList.add('loaded');
+    };
 
-    let deviceId = localStorage.getItem("device_id");
-    if (!deviceId) {
-      deviceId = generateUUID();
-      localStorage.setItem("device_id", deviceId);
-    }
+    featureImg.onload = function() {
+      handleFeatureImageLoaded();
+    };
+    featureImg.onerror = function() {
+      featureShimmer.classList.add('loaded');
+    };
 
-    // ارسال هر ۵ ثانیه یک رکورد با user_id و time
-    setInterval(() => {
-      fetch("https://sheetdb.io/api/v1/wwahfkxyrxv6w", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          data: [
-            {
-              time: 5,
-              device_id: deviceId
-            }
-          ]
-        })
-      });
-    }, 5000);
-  </script>
+    // Fallback for cached images or slow loading
+    setTimeout(() => {
+      if (startImg.complete && startImg.naturalHeight !== 0) {
+        startWrapper.classList.add('loaded');
+      }
+      if (proImg.complete && proImg.naturalHeight !== 0) {
+        proWrapper.classList.add('loaded');
+      }
+      if (featureImg.complete && featureImg.naturalHeight !== 0) {
+        handleFeatureImageLoaded();
+      }
+    }, 3000);
+  })();
+</script>
+
 </body>
-</html>
+                                                                        </html>
